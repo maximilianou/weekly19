@@ -1,7 +1,11 @@
 import * as React from 'react';
+import { render } from '@testing-library/react';
+import { Home } from './';
+import { buildProduct } from '../__helpers/build-product';
+import { Product } from '../models/product';
 
 describe('Home Container', () => {
-  if('shows a list of products', async () => {
+  it('shows a list of products', async () => {
     const products: Product[] = [
       buildProduct({handle: 'handle-1', title: 'The Holy Bible'}), 
       buildProduct({handle: 'handle-2', title: 'De Imitatione Christi'}) 
