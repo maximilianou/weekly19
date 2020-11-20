@@ -1,0 +1,7 @@
+{
+  "products": [
+    { "title": "The Holy Bible", "price": 200},
+    { "title": "De Imitatione Christi", "price": 50},
+    { "title": "Hacia el Padre", "price": 80}
+  ]
+}
