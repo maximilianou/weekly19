@@ -32,7 +32,8 @@ doc-e2e:
 	@echo '     https://docs.cypress.io/guides/getting-started/installing-cypress.html#Opening-Cypress'
 	@echo '     https://github.com/cypress-io/cypress-docker-images'
 	@echo ''
-
+test:
+	cd ui && npm run test	
 
 
 
