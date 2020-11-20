@@ -1,6 +1,6 @@
 import * as React from 'react';
-import { ProductsRespository } from '../repo/ProductsRepository';
-import { Product } from '../model/product';
+import { ProductsRepository } from '../repo/ProductsRepository';
+import { Product } from '../models/product';
 
 interface HomeProps {
   productsRepository: ProductsRepository;
@@ -11,9 +11,16 @@ export const Home: React.FC<HomeProps> = ( {productsRepository} ) => {
   React.useEffect(() => {
     productsRepository.getProducts().then(setProducts);
   }, []);
+
+  const hasProducts = () => products && products.length > 0
+  
   return (
     <section>
-      {products.map( (product) => <article key={product.handle}>{product.title}</article>  )}
+      {
+        hasProducts()
+        ? products.map( (product) => <article key={product.handle}>{product.title}</article>  )
+        : <p>No Product were found</p>
+      }
     </section>
   );
 };
