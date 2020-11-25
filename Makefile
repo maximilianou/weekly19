@@ -34,6 +34,8 @@ doc-e2e:
 	@echo ''
 test:
 	cd ui && npm run test	
+test-ci:
+	cd ui && npm run test:ci
 
 
 
