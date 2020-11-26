@@ -1,7 +1,7 @@
-
+ 
 
 ### comp/Home.spec.tsx
-```
+```tsx
 import * as React from 'react';
 import { render, RenderResult, fireEvent } from '@testing-library/react';
 import { Home, HomeText } from './';
@@ -52,7 +52,7 @@ describe('Home Container', () => {
 ```
 
 ### comp/Home.tsx
-```
+```tsx
 import * as React from 'react';
 import { Product } from '../models/product';
 import { ProductCard } from './ProductCard';
@@ -97,7 +97,7 @@ export const Home: React.FC<HomeProps> = ( {
 ```
 
 ### comp/ProductCard.spec.tsx
-```
+```tsx
 import * as React from 'react';
 import { render, RenderResult, fireEvent } from '@testing-library/react';
 import { ProductCard } from '.';
@@ -117,7 +117,7 @@ describe('ProductCard', () => {
 ```
 
 ### comp/ProductCard.tsx
-```
+```tsx
  import * as React from 'react';
  import { Product } from '../models/product'; 
  interface ProductCardProps {
@@ -140,7 +140,7 @@ describe('ProductCard', () => {
 ```
 
 ### __helpers/build-product.ts
-```
+```tsx
 import { Product } from '../models/product';
 export const buildProduct = ( { 
   title = 'The Holy Bible',
@@ -155,7 +155,7 @@ export const buildProduct = ( {
 ```
 
 ### models/Product.ts
-```
+```tsx
 export interface Product{
   handle: string;
   price: number;
@@ -164,7 +164,7 @@ export interface Product{
 ```
 
 ### repo/ProductsRepository.ts
-```
+```tsx
 import { Product } from '../models/product';
 export interface ProductsRepository {
   getProducts: () => Promise<Product[]>;
@@ -177,7 +177,7 @@ export const productsRepository: ProductsRepository = {
 };
 ```
 ### repo/CartRepository.ts
-```
+```tsx
 export interface CartRepository {
     addItem: (handle: string) => Promise<void>;
 }
