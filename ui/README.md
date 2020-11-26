@@ -1,46 +1,192 @@
-# Getting Started with Create React App
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
-## Available Scripts
+### comp/Home.spec.tsx
+```
+import * as React from 'react';
+import { render, RenderResult, fireEvent } from '@testing-library/react';
+import { Home, HomeText } from './';
+import { buildProduct } from '../__helpers/build-product';
+import { Product } from '../models/product';
+import { ProductsRepository } from '../repo/ProductsRepository';
+describe('Home Container', () => {
+  const buildProductRepository = (promise: Promise<Product[]>): ProductsRepository => ({
+    getProducts: jest.fn( () => promise )
+  }); 
+  const buildCartRepository = () => ({
+    addItem: jest.fn()
+  })
+  it('shows a list of products', async () => {
+    const products: Product[] = [
+      buildProduct({handle: 'handle-1', title: 'The Holy Bible'}), 
+      buildProduct({handle: 'handle-2', title: 'De Imitatione Christi'}) 
+    ];
+    const productsRepository: ProductsRepository = buildProductRepository(Promise.resolve(products));
+    const view = render(<Home productsRepository={productsRepository} />);
+    const foundProducts = await Promise.all( products.map( (product) => view.findByText(product.title) ) );
+    expect(foundProducts.length).toBe(products.length);
+  });
+  it('shows message when list is empty', async () => {
+    const products: Product[] = [];
+    const productsRepository: ProductsRepository = buildProductRepository(Promise.resolve(products));
+    const view = render(<Home productsRepository={productsRepository} />);
+    expect(view.queryByText(HomeText.emptyMessage)).toBeInTheDocument();
+  });
+  it.skip('shows an error when products can not be retrieved', async () => {
+    const error = new Error('not retrieved products');
+    const productsRepository: ProductsRepository = buildProductRepository(Promise.reject(error));
+    const view = render(<Home productsRepository={productsRepository} cartRepository={buildCartRepository()} />);
+    expect( view.findByText(error.message) ).toBeInTheDocument();
+  });
+  it('add item to cart', async () => {
+    const firstProduct: Product = buildProduct({handle: 'first-product'});
+    const secondProduct: Product = buildProduct({handle: 'second-product'});
+    const productsReposiotry = buildProductRepository(Promise.resolve([firstProduct, secondProduct]));
+    const cartRepository = buildCartRepository();
+    const view = render(<Home productsRepository={productsReposiotry} cartRepository={cartRepository} />);
+    const [, item] = await view.findAllByRole('button');
+    fireEvent.click(item);
+    expect(cartRepository.addItem).toHaveBeenCalledWith(secondProduct.handle);
+  });
+});
 
-In the project directory, you can run:
+```
 
-### `npm start`
+### comp/Home.tsx
+```
+import * as React from 'react';
+import { Product } from '../models/product';
+import { ProductCard } from './ProductCard';
+import { productsRepository as productsRepositoryInstance, ProductsRepository } from '../repo/ProductsRepository';
+import { cartRepository as cartRepositoryInstance, CartRepository } from '../repo/CartRepository';
+export enum HomeText {
+  emptyMessage = 'No products were found'
+}
+interface HomeProps {
+  productsRepository?: ProductsRepository;
+  cartRepository?: CartRepository;
+};
+export const Home: React.FC<HomeProps> = ( {
+  productsRepository = productsRepositoryInstance, 
+  cartRepository = cartRepositoryInstance } ) => {
+  const [products, setProducts] = React.useState<Product[]>([]);
+  const [error, setError] = React.useState<Error | null >(null);
+  React.useEffect(() => {
+    productsRepository.getProducts()
+    .then(setProducts)
+    .catch(setError)
+  }, []);
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+  const hasProducts = () => products && products.length > 0
+  
+  return (
+    <section>
+      { error && <p>{error.message}</p> }
+      {
+        hasProducts()
+        ? products.map( (product) => 
+          <article key={product.handle}>
+            <ProductCard
+              product={product}
+              onClick={cartRepository.addItem} 
+            /></article> )
+      : <p>{HomeText.emptyMessage}</p>
+      }
+    </section>
+  );
+};
+```
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+### comp/ProductCard.spec.tsx
+```
+import * as React from 'react';
+import { render, RenderResult, fireEvent } from '@testing-library/react';
+import { ProductCard } from '.';
+import { buildProduct } from '../__helpers/build-product';
+describe('ProductCard', () => {
+  it('calls with product identifier when is clicked', ()=>{
+      const product = buildProduct({ handle: 'one-handle'});
+      const clickMock = jest.fn();
+      const view = render(<ProductCard product={product} onClick={clickMock}/>);
+      const button = view.getByRole('button');
+      fireEvent.click(button);
+      expect(clickMock).toHaveBeenCalledWith(product.handle);
+  });
+}
+);
 
-### `npm test`
+```
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+### comp/ProductCard.tsx
+```
+ import * as React from 'react';
+ import { Product } from '../models/product'; 
+ interface ProductCardProps {
+     product: Product;
+     onClick: (handle: string)=>void;
+ }
+ export const ProductCard: React.FC<ProductCardProps> = ({ product, onClick})=> (
+  <div>
+      <h3>{product.title}</h3>
+     <p>Price: 
+        <span>{product.price}</span>
+    </p>
+    { onClick &&
+      <button type="button" onClick={() => {onClick(product.handle);}}>
+          Add to Cart
+      </button>
+    }
+  </div>
+ );
+```
 
-### `npm run build`
+### __helpers/build-product.ts
+```
+import { Product } from '../models/product';
+export const buildProduct = ( { 
+  title = 'The Holy Bible',
+  price = 200,
+  handle = 'the book'
+}: Partial<Product> ): Product => ( {
+  handle,
+  price,
+  title
+});
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+```
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+### models/Product.ts
+```
+export interface Product{
+  handle: string;
+  price: number;
+  title: string;
+}
+```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
-
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
-
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
+### repo/ProductsRepository.ts
+```
+import { Product } from '../models/product';
+export interface ProductsRepository {
+  getProducts: () => Promise<Product[]>;
+};
+export const productsRepository: ProductsRepository = {
+  getProducts: () => 
+    fetch('http://localhost:4000/products'
+    ).then( response => response.json()
+    ).then( data => data.products )
+};
+```
+### repo/CartRepository.ts
+```
+export interface CartRepository {
+    addItem: (handle: string) => Promise<void>;
+}
+export const cartRepository: CartRepository = {
+    addItem: (handle) => fetch('http://localhost:4000/cart',{
+       method: 'PUT',
+       body: JSON.stringify( { handle } )
+    }).then( 
+        response => response.json()
+    )
+};
+```
