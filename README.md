@@ -3,8 +3,41 @@
 ---
 ## UI
 
- 
+### cypress/integration/products-catalog.spec.js
+```js
+import { products } from '../fixtures/catalog/products.json';
+describe('Product Catalog', () => {
 
+  const productsEndpoint = {
+    method: 'GET',
+    url: 'http://localhost:4000/products'
+  };
+
+  beforeEach(() => {
+    cy.server();
+  });
+
+  it('shows the catalog', () => {
+    //const productTitles = ['The Holy Bible','De Imitatione Christi', 'Hacia el Padre'];
+    cy.route({...productsEndpoint ,"response": 'fixture:catalog/products' , "status": 200});
+    cy.visit('/');
+    //cy.contains('.products > li');
+    products.map( ( { title } ) => {
+      cy.contains(title);
+    }); 
+  });
+});
+```
+### cypress/fixtures/catalog/products.json 
+```json
+{
+  "products": [
+    { "title": "The Holy Bible", "price": 200},
+    { "title": "De Imitatione Christi", "price": 50},
+    { "title": "Hacia el Padre", "price": 80}
+  ]
+}
+```
 ### comp/Home.spec.tsx
 ```tsx
 import * as React from 'react';
