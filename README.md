@@ -3,6 +3,8 @@
 ---
 ## UI
 
+## Reference: https://softwarecrafters.io/react/tdd-react-typescript
+
 ### cypress/integration/products-catalog.spec.js
 ```js
 import { products } from '../fixtures/catalog/products.json';
